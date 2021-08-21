@@ -25,6 +25,7 @@
     "longhinsamuele/yii2-gridview": "dev-master",
     "longhinsamuele/yii2-gridviews": "dev-master",
     "longhinsamuele/yii2-btn": "dev-main"
+
   },
   "autoload": {
     "psr-4": {
