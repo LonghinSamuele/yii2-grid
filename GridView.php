@@ -2,6 +2,7 @@
 
 namespace samuelelonghin\grid;
 
+use app\widgets\Btn;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;

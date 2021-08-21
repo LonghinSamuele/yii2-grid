@@ -2,6 +2,7 @@
 
 namespace samuelelonghin\grid;
 
+use app\widgets\Btn;
 use yii\bootstrap4\Widget;
 use yii\helpers\Html;
 
