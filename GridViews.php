@@ -2,6 +2,7 @@
 
 namespace samuelelonghin\grid;
 
+use app\widgets\Btn;
 use yii\bootstrap4\Widget;
 use yii\helpers\Html;
 
@@ -56,7 +57,7 @@ class GridViews extends Widget
      */
     public function run()
     {
-        if ($this->visible) {
+        if ($this->visible) { 
             $this->renderPreGrid();
             $this->renderTitle();
             foreach ($this->data as $title => $options) {

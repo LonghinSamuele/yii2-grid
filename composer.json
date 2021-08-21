@@ -19,9 +19,9 @@
     }
   ],
   "require": {
-    "../../../vendor/yiisoft/yii2": "~2.0.0",
-    "../../../vendor/kartik-v/yii2-grid": ">=v2.0.0",
-    "../../../vendor/yiisoft/yii2-bootstrap4": ">=2.0.10"
+    "yiisoft/yii2": "~2.0.0",
+    "kartik-v/yii2-grid": ">=v2.0.0",
+    "yiisoft/yii2-bootstrap4": ">=2.0.10"
   },
   "autoload": {
     "psr-4": {
