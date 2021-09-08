@@ -3,7 +3,6 @@
 namespace samuelelonghin\grid;
 
 use samuelelonghin\btn\Btn;
-use samuelelonghin\gridview\GridView;
 use yii\bootstrap4\Widget;
 use yii\helpers\Html;
 
