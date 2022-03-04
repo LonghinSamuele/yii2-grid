@@ -3,13 +3,18 @@
 namespace samuelelonghin\grid;
 
 use kartik\base\Config;
+use kartik\export\ExportMenu;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use samuelelonghin\btn\Btn;
-use samuelelonghin\grid\Module;
 use Yii;
 use yii\base\InvalidConfigException;
+use yii\base\Theme;
+use yii\bootstrap4\Html;
 use yii\data\ActiveDataProvider;
 use yii\grid\Column;
-use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 
 
@@ -21,7 +26,8 @@ use yii\helpers\Url;
  */
 class GridView extends \kartik\grid\GridView
 {
-
+	public $collapse = false;
+	public $collapsable = false;
 	public $isAssociative = false;
 	public $itemClass = false;
 	/**
@@ -33,7 +39,7 @@ class GridView extends \kartik\grid\GridView
 	public $rowClick = true;
 	public $rowClickParams = null;
 	public $pk = 'id';
-	public $baseColumns = false;
+	public $baseColumns = [];
 	public $preGrid = '';
 	public $postGrid = '';
 	public $title = false;
@@ -51,13 +57,42 @@ class GridView extends \kartik\grid\GridView
 	public $cornerButton;
 	public $cornerIcon;
 	public $cornerButtonUrl;
-	public $collapse = true;
 	public $limit = null;
 	public $attribute = null;
 
 	private $isEmpty = false;
 
 	public $moduleId = 'gridview-s';
+
+//	public $panelPrefix = 'sl-panel-';
+
+
+	public $showExport = false;
+	public $toggleData = false;
+	public $exportColumns = [];
+	public $exportMergeColumns = [];
+
+	public $panelTemplate = <<< HTML
+{panelBefore}
+{items}
+{panelAfter}
+{panelFooter}
+HTML;
+
+	public $defaultExportStyle = [
+		'borders' => [
+			'outline' => [
+				'borderStyle' => Border::BORDER_MEDIUM,
+				'color' => ['argb' => Color::COLOR_BLACK],
+			],
+			'inside' => [
+				'borderStyle' => Border::BORDER_DOTTED,
+				'color' => ['argb' => Color::COLOR_BLACK],
+			]
+		],
+		'font' => ['bold' => false, 'size' => 14],
+
+	];
 
 	public function init()
 	{
@@ -83,20 +118,21 @@ class GridView extends \kartik\grid\GridView
 			else throw new InvalidConfigException('Manca itemClass');
 		}
 		if (!$this->isEmpty && !$this->columns) {
-			if (!$this->baseColumns) {
+			if (empty($this->baseColumns)) {
 				$this->columns = $this->itemClass::getGridViewColumns();
 			} else {
-				$this->columns = array_merge($this->baseColumns, $this->columns);
+				$this->columns = ArrayHelper::merge($this->baseColumns, $this->columns);
 			}
 			if ($this->mergeColumns) {
-				$this->columns = array_merge($this->columns, $this->mergeColumns);
+				$this->columns = ArrayHelper::merge($this->columns, $this->mergeColumns);
 			}
 		}
 		if ($this->emptyText) {
-			$this->emptyText = '<p class="text-muted">' . Yii::t('app', $this->emptyText) . '</p>';
+			$this->showOnEmpty = true;
+			$this->emptyText = '<p class="text-muted">' . Yii::t('app/' . $this->moduleId, $this->emptyText) . '</p>';
 		}
 		if ($this->summary) {
-			$this->summary = '<h5>' . Yii::t('app', $this->summary) . '</h5>';
+			$this->summary = '<h5>' . Yii::t('app/' . $this->moduleId, $this->summary) . '</h5>';
 		}
 		if ($this->rowClick && !$this->rowOptions) {
 			if (!$this->rowClickUrl) {
@@ -117,9 +153,16 @@ class GridView extends \kartik\grid\GridView
 				return [$pk => $model[$attribute], 'onclick' => 'cambiaPagina(event,"' . $url . '");'];
 			};
 		}
-		if ($this->cornerButton) {
+		if ($this->cornerButton === true) {
 			$this->cornerButton = Btn::widget(['type' => 'expand', 'url' => $this->cornerButtonUrl ?: false, 'icon' => $this->cornerIcon ?: 'expand', 'text' => false]);
 		}
+		if ($this->collapse && $this->collapsable) {
+			if (!isset($this->options['class'])) $this->options['class'] = 'collapse';
+			if (is_array($this->options['class'])) array_push($this->options['class'], 'collapse');
+			$this->options['class'] .= ' collapse';
+		}
+
+		$this->prepareExport();
 		parent::init();
 	}
 
@@ -130,69 +173,51 @@ class GridView extends \kartik\grid\GridView
 	{
 		if ($this->visible && (!$this->isEmpty || $this->emptyText)) {
 			if ($this->containerClass) {
-				$this->initContainer();
-				$this->renderTitle();
-				$this->renderPreGrid();
-				parent::run();
-				$this->renderPostGrid();
-				$this->endContainer();
+				$this->layout = '{initContainer}{title}{preGrid}' . $this->layout . '{postGrid}{endContainer}';
 			} else {
-				$this->renderPreGrid();
-				$this->renderTitle();
-				parent::run();
-				$this->renderPostGrid();
+				$this->layout = '{title}{preGrid}' . $this->layout . '{postGrid}';
 			}
+			return parent::run();
 		}
+		return '';
 	}
 
-	public function initContainer()
+	public function renderInitContainer(): string
 	{
-		?>
-        <div class="<?= $this->containerClass ?>">
-		<?php
+		return Html::beginTag('div', ['class' => $this->containerClass]);
 	}
 
-	public function endContainer()
+	public function renderEndContainer(): string
 	{
-		?>
-        </div>
-		<?php
+		return Html::endTag('div');
 	}
 
-	public function renderPreGrid()
+	public function renderPreGrid(): string
 	{
-		echo $this->preGrid;
+		return $this->preGrid;
 	}
 
-	public function renderPostGrid()
+	public function renderPostGrid(): string
 	{
-		echo $this->postGrid;
+		return $this->postGrid;
 	}
 
-	private function renderTitle()
+	private function renderTitle(): string
 	{
 		if (is_string($this->title)) {
-
 			$headingNumber = 2 + $this->level;
-			?>
-            <div class="row">
-                <div class="col">
-                    <h<?= $headingNumber ?>><?= Html::encode($this->title) ?></h<?= $headingNumber ?>>
-                </div>
-                <div class="px-3 ml-auto">
-					<?= $this->cornerButton ?>
-                </div>
-            </div>
-			<?php
-		}
-	}
+			$title = Html::tag('h' . $headingNumber, Html::encode($this->title));
 
-	public function getRowClickUrlComposed()
-	{
-		if ($this->rowClickUrl)
-			return $this->rowClickUrl;
-		if ($this->rowClickParams) {
+			if ($this->collapsable) {
+				$title .= Html::tag('p', '...', ['class' => 'collapse' . !$this->collapse ? ' show' : '', 'id' => $this->id]);
+				$title .= Html::a('', '#' . $this->id, ['class' => 'stretched-link', 'data-toggle' => 'collapse', 'role' => 'button', 'aria-expanded' => 'false', 'aria-controls' => $this->id]);
+			}
+			return Html::tag('div',
+				Html::tag('div', $title, ['class' => 'col']) .
+				Html::tag('div', $this->renderCornerButtons(), ['class' => 'px-3 ml-auto']),
+				['class' => 'row']);
 		}
+		return '';
 	}
 
 	protected function initModule()
@@ -209,5 +234,91 @@ class GridView extends \kartik\grid\GridView
 		if (isset($this->bsVersion)) {
 			return;
 		}
+	}
+
+	public function prepareExport()
+	{
+		if ($this->showExport !== false) {
+			if (empty($this->exportColumns)) {
+				$this->exportColumns = $this->columns;
+			}
+			if (!empty($this->exportMergeColumns) && is_array($this->exportMergeColumns)) {
+				$this->exportColumns = ArrayHelper::merge($this->exportColumns, $this->exportMergeColumns);
+			}
+		}
+	}
+
+	public function renderExport(): string
+	{
+		if ($this->showExport === false)
+			return '';
+		$filename = ArrayHelper::getValue($this->export, 'filename', $this->title);
+		$showOnEmpty = ArrayHelper::getValue($this->export, 'showOnEmpty', $this->showOnEmpty);
+		$showColumnSelector = ArrayHelper::getValue($this->export, 'showColumnSelector', true);
+		$exportRequestParam = ArrayHelper::getValue($this->export, 'exportRequestParam', $this->id . '-export-');
+
+		return ExportMenu::widget([
+			'pjax' => false,
+			'pjaxContainerId' => null,
+			'clearBuffers' => true,
+			'columns' => $this->exportColumns,
+			'showOnEmpty' => $showOnEmpty,
+			'filename' => $filename,
+			'dataProvider' => $this->dataProvider,
+			'showColumnSelector' => $showColumnSelector,
+			'filterModel' => $this->filterModel,
+			'exportRequestParam' => $exportRequestParam,
+			'options' => ['id' => 'expMenu-' . $this->id],
+			'boxStyleOptions' => [
+				ExportMenu::FORMAT_HTML => $this->defaultExportStyle,
+				ExportMenu::FORMAT_PDF => $this->defaultExportStyle,
+				ExportMenu::FORMAT_EXCEL => $this->defaultExportStyle,
+				ExportMenu::FORMAT_EXCEL_X => $this->defaultExportStyle,
+			],
+			'exportConfig' => [
+				ExportMenu::FORMAT_HTML => [
+					'defaultRowDimension' => ['height' => "200px"]
+				],
+				ExportMenu::FORMAT_PDF => [
+					'pdfConfig' => [
+						'cssFile' => '@webroot/css/pdf/main.css',
+					],
+					'config' => [
+						'cssFile' => '@webroot/css/pdf/main.css',
+					]
+				],
+			],
+			'onRenderSheet' => function ($sheet) {
+				/** @var Worksheet $sheet */
+				$sheet->getStyle('A:Z')->getAlignment()->setWrapText(true);
+			},
+		]);
+	}
+
+	/**
+	 * Renders a section of the specified name.
+	 * If the named section is not supported, false will be returned.
+	 * @param string $name the section name, e.g., `{summary}`, `{items}`.
+	 * @return string|bool the rendering result of the section, or false if the named section is not supported.
+	 */
+	public function renderSection($name)
+	{
+		if (is_string($name) && !empty($name) && strlen($name) >= 3 && $name[0] == '{' && $name[strlen($name) - 1] == '}') {
+			$first = strtoupper($name[1]);
+			$rest = substr($name, 2, strlen($name) - 3);
+			$renderFunction = 'render' . $first . $rest;
+			if ($this->hasMethod($renderFunction)) return $this->{$renderFunction}();
+		}
+		return parent::renderSection($name);
+	}
+
+	private function renderCornerButtons()
+	{
+		$out = '';
+		if ($this->cornerButton)
+			$out .= $this->cornerButton;
+		if ($this->showExport)
+			$out .= $this->renderExport();
+		return $out;
 	}
 }
