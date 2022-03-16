@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpIllegalPsrClassPathInspection */
 
 namespace samuelelonghin\grid;
 
@@ -8,11 +9,13 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use samuelelonghin\btn\Btn;
+use samuelelonghin\db\ActiveQuery;
 use Yii;
 use yii\base\InvalidConfigException;
-use yii\base\Theme;
 use yii\bootstrap4\Html;
 use yii\data\ActiveDataProvider;
+use yii\data\DataProviderInterface;
+use yii\db\ActiveQueryTrait;
 use yii\grid\Column;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
@@ -34,17 +37,27 @@ class GridView extends \kartik\grid\GridView
 	 * @var bool|Column[]
 	 */
 	public $mergeColumns = false;
+	/**
+	 * @var ActiveQueryTrait |ActiveQuery
+	 */
 	public $query;
+	/**
+	 * @var DataProviderInterface
+	 */
+	public $exportProvider;
 	public $rowClickUrl = false;
 	public $rowClick = true;
 	public $rowClickParams = null;
-	public $pk = 'id';
+	public string $pk = 'id';
 	public $baseColumns = [];
-	public $preGrid = '';
-	public $postGrid = '';
+	public string $preGrid = '';
+	public string $postGrid = '';
+	/**
+	 * @var bool|string
+	 */
 	public $title = false;
-	public $containerClass = 'rounded shadow mt-5 mb-5 p-3';
-	public $visible = true;
+	public string $containerClass = 'rounded shadow mt-5 mb-5 p-3';
+	public bool $visible = true;
 	public $hover = true;
 	public $striped = false;
 	public $bordered = false;
@@ -62,10 +75,7 @@ class GridView extends \kartik\grid\GridView
 
 	private $isEmpty = false;
 
-	public $moduleId = 'gridview-s';
-
-//	public $panelPrefix = 'sl-panel-';
-
+	public $moduleId = 'samuele-longhin-gridview';
 
 	public $showExport = false;
 	public $toggleData = false;
@@ -94,6 +104,7 @@ HTML;
 
 	];
 
+
 	public function init()
 	{
 		if (!$this->visible) return;
@@ -105,17 +116,23 @@ HTML;
 						$pagination['pageSize'] = $this->limit;
 				}
 				$this->dataProvider = new ActiveDataProvider(['query' => $this->query, 'pagination' => $pagination]);
+				if (!isset($this->exportProvider)) {
+					$this->exportProvider = new ActiveDataProvider(['query' => $this->query, 'pagination' => false]);
+				}
 			} else {
 				throw new InvalidConfigException('Il campo "query" deve essere impostato');
 			}
+		}
+		if (!isset($this->exportProvider)) {
+			$this->exportProvider = $this->dataProvider;
 		}
 		if (!$this->dataProvider->count) {
 			$this->isEmpty = true;
 		}
 		if (!$this->itemClass) {
-			if (isset($this->dataProvider->query))
+			if (isset($this->dataProvider->query) && isset($this->dataProvider->query->modelClass)) {
 				$this->itemClass = $this->dataProvider->query->modelClass;
-			else throw new InvalidConfigException('Manca itemClass');
+			} else throw new InvalidConfigException('Manca itemClass');
 		}
 		if (!$this->isEmpty && !$this->columns) {
 			if (empty($this->baseColumns)) {
@@ -202,6 +219,10 @@ HTML;
 		return $this->postGrid;
 	}
 
+	/**
+	 * @return string
+	 * @noinspection PhpUnusedPrivateMethodInspection
+	 */
 	private function renderTitle(): string
 	{
 		if (is_string($this->title)) {
@@ -257,6 +278,7 @@ HTML;
 		$showColumnSelector = ArrayHelper::getValue($this->export, 'showColumnSelector', true);
 		$exportRequestParam = ArrayHelper::getValue($this->export, 'exportRequestParam', $this->id . '-export-');
 
+
 		return ExportMenu::widget([
 			'pjax' => false,
 			'pjaxContainerId' => null,
@@ -264,7 +286,7 @@ HTML;
 			'columns' => $this->exportColumns,
 			'showOnEmpty' => $showOnEmpty,
 			'filename' => $filename,
-			'dataProvider' => $this->dataProvider,
+			'dataProvider' => $this->exportProvider,
 			'showColumnSelector' => $showColumnSelector,
 			'filterModel' => $this->filterModel,
 			'exportRequestParam' => $exportRequestParam,

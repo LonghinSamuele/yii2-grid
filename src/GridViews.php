@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpIllegalPsrClassPathInspection */
 
 namespace samuelelonghin\grid;
 
@@ -25,24 +25,20 @@ class GridViews extends Widget
 	{
 		if (isset($this->data) && $this->visible) {
 			if (is_array($this->data)) {
-//                if (ArrayHelper::isAssociative($this->data)) {
-//                    $this->isAssociative = true;
-//                }
 				if (array_key_exists('_options', $this->data)) {
 					$tempOptions = $this->data['_options'];
-					if (array_key_exists('preGrid', $tempOptions)) {
+					if ($tempOptions['preGrid']) {
 						$this->preGrid = $tempOptions['preGrid'];
 					}
-					if (array_key_exists('postGrid', $tempOptions)) {
+					if ($tempOptions['postGrid']) {
 						$this->postGrid = $tempOptions['postGrid'];
 					}
-					if (array_key_exists('cornerButton', $tempOptions)) {
+					if ($tempOptions['cornerButton']) {
 						$icon = $tempOptions['cornerIcon'] ?: 'expand';
-						$cornerButton = $tempOptions['cornerButton'];
 						$cornerButtonUrl = $tempOptions['cornerButtonUrl'];
 						$this->cornerButton = Btn::widget(['type' => 'expand', 'url' => $cornerButtonUrl, 'icon' => $icon, 'text' => false]);
 					}
-					if (array_key_exists('limit', $tempOptions)) {
+					if ($tempOptions['limit']) {
 						$this->limit = $tempOptions['limit'];
 					}
 					unset($this->data['_options']);
@@ -76,13 +72,13 @@ class GridViews extends Widget
 	public function renderGrid($title, $options)
 	{
 		if (!array_key_exists('query', $options) && !array_key_exists('dataProvider', $options)) {
-			if (!(array_key_exists('_options', $options) && array_key_exists('visible', $options['_options']) && !$options['_options']['visible'])) {
+			if (!(isset($options['_options']) && isset($options['_options']['visible']) && !$options['_options']['visible'])) {
 				$this->renderStartContainer();
 				echo self::widget(['data' => $options, 'title' => Html::encode($title), 'containerClass' => '', 'level' => $this->level + 1, 'limit' => $this->limit]);
 				$this->renderEndContainer();
 			}
 		} else {
-			if (!(array_key_exists('visible', $options) && !$options['visible'])) {
+			if (!(isset($options['visible']) && !$options['visible'])) {
 				$this->renderStartContainer();
 				$options['containerClass'] = '';
 				$options['title'] = $title;
@@ -121,6 +117,7 @@ class GridViews extends Widget
 		echo $this->postGrid ? $this->postGrid : '';
 	}
 
+	/** @noinspection PhpUnused */
 	public function renderCornerButton()
 	{
 		if ($this->cornerButton) {
@@ -134,6 +131,7 @@ class GridViews extends Widget
 		}
 	}
 
+	/** @noinspection PhpUnusedPrivateMethodInspection */
 	private function renderGridTitle($title)
 	{
 		if (is_string($title) || $this->isAssociative) {
