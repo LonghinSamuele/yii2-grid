@@ -16,6 +16,6 @@ class GridViewAsset extends AssetBundle
         'css/sl-grid.css',
     ];
     public $js = [
-        'js/sl-grid.css',
+        'js/sl-grid.js',
     ];
 }
