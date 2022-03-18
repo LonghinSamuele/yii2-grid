@@ -13,10 +13,10 @@ class GridViewAsset extends AssetBundle
 {
     public $sourcePath= __DIR__ ;
     public $css= [
-        'css/css-grid',
+        'css/ls-grid.css',
     ];
     public $js=[
-        'js/js-grid',
+        'js/ls-grid.css',
     ];
 
 }
