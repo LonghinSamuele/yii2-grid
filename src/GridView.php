@@ -10,6 +10,7 @@ use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use samuelelonghin\btn\Btn;
 use samuelelonghin\db\ActiveQuery;
+use samuelelonghin\grid\assets\GridViewAsset;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\bootstrap4\Html;
@@ -189,6 +190,7 @@ HTML;
 	public function run()
 	{
 		if ($this->visible && (!$this->isEmpty || $this->emptyText)) {
+			GridViewAsset::register($this->getView());
 			if ($this->containerClass) {
 				$this->layout = '{initContainer}{title}{preGrid}' . $this->layout . '{postGrid}{endContainer}';
 			} else {
