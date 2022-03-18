@@ -2,7 +2,7 @@
   "name": "samuelelonghin/yii2-grid",
   "description": "new Bootstrap 4 GridView ad GridViews",
   "type": "yii2-extension",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "keywords": [
     "yii2",
     "extension",
@@ -24,6 +24,8 @@
     "yiisoft/yii2-bootstrap4": ">=2.0.10",
     "samuelelonghin/yii2-btn": "*",
     "kartik-v/yii2-export": "dev-master",
+    "kartik-v/yii2-bootstrap5-dropdown":"*",
+    "kartik-v/yii2-mpdf": "*",
     "phpoffice/phpspreadsheet": "*"
   },
   "autoload": {
