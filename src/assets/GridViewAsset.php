@@ -11,7 +11,7 @@ use yii\web\AssetBundle;
 
 class GridViewAsset extends AssetBundle
 {
-    public $sourcePath= __DIR__ . '/assets';
+    public $sourcePath= __DIR__ ;
     public $css= [
         'css/css-grid',
     ];
