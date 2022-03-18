@@ -10,7 +10,7 @@ use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use samuelelonghin\btn\Btn;
 use samuelelonghin\db\ActiveQuery;
-use samuelelonghin\grid\assets\GridViewAsset;
+use samuelelonghin\grid\GridViewAsset;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\bootstrap4\Html;
