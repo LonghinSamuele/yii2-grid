@@ -4,6 +4,7 @@ namespace samuelelonghin\grid;
 
 use samuelelonghin\btn\Btn;
 use yii\bootstrap4\Widget;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 
 
@@ -57,6 +58,7 @@ class GridViews extends Widget
 			$this->renderPreGrid();
 			$this->renderTitle();
 			foreach ($this->data as $title => $options) {
+				if (!$this->isAssociative) $title = ArrayHelper::getValue($options, 'title', '');
 				$this->renderGrid($title, $options);
 			}
 			$this->renderPostGrid();
