@@ -2,7 +2,7 @@
   "name": "samuelelonghin/yii2-grid",
   "description": "new Bootstrap 5 GridView ad GridViews",
   "type": "yii2-extension",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "keywords": [
     "yii2",
     "extension",
@@ -21,7 +21,7 @@
   "require": {
     "yiisoft/yii2": "~2.0.0",
     "kartik-v/yii2-grid": ">=v2.0.0",
-    "yiisoft/yii2-bootstrap5": ">=2.0.10",
+    "yiisoft/yii2-bootstrap5": "*",
     "samuelelonghin/yii2-btn": ">=1.1.0",
     "kartik-v/yii2-export": ">=1.4.2",
     "kartik-v/yii2-bootstrap5-dropdown":"*",
