@@ -13,7 +13,7 @@ use samuelelonghin\db\ActiveQuery;
 use samuelelonghin\grid\GridViewAsset;
 use Yii;
 use yii\base\InvalidConfigException;
-use yii\bootstrap4\Html;
+use yii\bootstrap5\Html;
 use yii\data\ActiveDataProvider;
 use yii\data\DataProviderInterface;
 use yii\db\ActiveQueryTrait;
