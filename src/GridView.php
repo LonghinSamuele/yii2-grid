@@ -1,8 +1,8 @@
 <?php
-/** @noinspection PhpIllegalPsrClassPathInspection */
 
 namespace samuelelonghin\grid;
 
+use Exception;
 use kartik\base\Config;
 use kartik\export\ExportMenu;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -10,7 +10,6 @@ use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use samuelelonghin\btn\Btn;
 use samuelelonghin\db\ActiveQuery;
-use samuelelonghin\grid\GridViewAsset;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\bootstrap5\Html;
@@ -191,10 +190,9 @@ HTML;
 	{
 		if ($this->visible && (!$this->isEmpty || $this->emptyText)) {
 			GridViewAsset::register($this->getView());
+			$this->layout = '{top}{preGrid}' . $this->layout . '{postGrid}';
 			if ($this->containerClass) {
-				$this->layout = '{initContainer}{title}{preGrid}' . $this->layout . '{postGrid}{endContainer}';
-			} else {
-				$this->layout = '{title}{preGrid}' . $this->layout . '{postGrid}';
+				$this->layout = '{initContainer}' . $this->layout . '{endContainer}';
 			}
 			return parent::run();
 		}
@@ -229,18 +227,31 @@ HTML;
 	{
 		if (is_string($this->title)) {
 			$headingNumber = 2 + $this->level;
-			$title = Html::tag('h' . $headingNumber, Html::encode($this->title));
-
-			if ($this->collapsable) {
-				$title .= Html::tag('p', '...', ['class' => 'collapse' . !$this->collapse ? ' show' : '', 'id' => $this->id]);
-				$title .= Html::a('', '#' . $this->id, ['class' => 'stretched-link', 'data-toggle' => 'collapse', 'role' => 'button', 'aria-expanded' => 'false', 'aria-controls' => $this->id]);
-			}
-			return Html::tag('div',
-				Html::tag('div', $title, ['class' => 'col']) .
-				Html::tag('div', $this->renderCornerButtons(), ['class' => 'px-3 ml-auto']),
-				['class' => 'row']);
+			return Html::tag('h' . $headingNumber, Html::encode($this->title));
 		}
 		return '';
+	}
+
+	/**
+	 * @throws InvalidConfigException
+	 * @throws Exception
+	 */
+	protected function renderTop(): string
+	{
+		$top = '';
+		if ($this->collapsable) {
+			$top .= Html::tag('p', '...', ['class' => 'collapse' . !$this->collapse ? ' show' : '', 'id' => $this->id]);
+			$top .= Html::a('', '#' . $this->id, ['class' => 'stretched-link', 'data-toggle' => 'collapse', 'role' => 'button', 'aria-expanded' => 'false', 'aria-controls' => $this->id]);
+		}
+		$title = $this->renderTitle();
+		$cornerButtons = $this->renderCornerButtons();
+		$exportButton = $this->renderExport();
+
+		$alignEnd = $this->isBs(4) ? 'ml-auto' : ($this->isBs(5) ? 'align-self-end' : '');
+		return Html::tag('div',
+			Html::tag('div', $title, ['class' => 'col']) .
+			Html::tag('div', $cornerButtons . $exportButton, ['class' => "col-auto px-3 $alignEnd"]),
+			['class' => 'row']);
 	}
 
 	protected function initModule()
@@ -271,7 +282,11 @@ HTML;
 		}
 	}
 
-	public function renderExport(): string
+	/**
+	 * @return string|null
+	 * @throws Exception
+	 */
+	public function renderExport(): ?string
 	{
 		if ($this->showExport === false)
 			return '';
@@ -336,13 +351,11 @@ HTML;
 		return parent::renderSection($name);
 	}
 
-	private function renderCornerButtons()
+	private function renderCornerButtons(): ?string
 	{
 		$out = '';
 		if ($this->cornerButton)
 			$out .= $this->cornerButton;
-		if ($this->showExport)
-			$out .= $this->renderExport();
 		return $out;
 	}
 }
