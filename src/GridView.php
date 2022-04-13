@@ -42,7 +42,7 @@ class GridView extends \kartik\grid\GridView
 	 */
 	public $query;
 	/**
-	 * @var DataProviderInterface
+	 * @var DataProviderInterface|ActiveDataProvider
 	 */
 	public $exportProvider;
 	public $rowClickUrl = false;
@@ -61,7 +61,7 @@ class GridView extends \kartik\grid\GridView
 	public $hover = true;
 	public $striped = false;
 	public $bordered = false;
-	public $summary = '';
+//	public $summary = '';
 	public $showOnEmpty = false;
 	public $responsive = true;
 	public $responsiveWrap = false;
@@ -105,6 +105,9 @@ HTML;
 	];
 
 
+	/**
+	 * @throws InvalidConfigException
+	 */
 	public function init()
 	{
 		if (!$this->visible) return;
@@ -116,15 +119,15 @@ HTML;
 						$pagination['pageSize'] = $this->limit;
 				}
 				$this->dataProvider = new ActiveDataProvider(['query' => $this->query, 'pagination' => $pagination]);
-				if (!isset($this->exportProvider)) {
-					$this->exportProvider = new ActiveDataProvider(['query' => $this->query, 'pagination' => false]);
-				}
 			} else {
 				throw new InvalidConfigException('Il campo "query" deve essere impostato');
 			}
 		}
 		if (!isset($this->exportProvider)) {
-			$this->exportProvider = $this->dataProvider;
+			$this->exportProvider = clone $this->dataProvider;
+			if ($this->exportProvider->hasMethod('setPagination')) {
+				$this->exportProvider->setPagination(false);
+			}
 		}
 		if (!$this->dataProvider->count) {
 			$this->isEmpty = true;
@@ -149,7 +152,7 @@ HTML;
 			$this->emptyText = '<p class="text-muted">' . Yii::t('app/' . $this->moduleId, $this->emptyText) . '</p>';
 		}
 		if ($this->summary) {
-			$this->summary = '<h5>' . Yii::t('app/' . $this->moduleId, $this->summary) . '</h5>';
+			$this->summary = '<h5>' . Yii::t('app/samuelelonghin/grid/summary', $this->summary) . '</h5>';
 		}
 		if ($this->rowClick && !$this->rowOptions) {
 			if (!$this->rowClickUrl) {
@@ -179,6 +182,10 @@ HTML;
 			$this->options['class'] .= ' collapse';
 		}
 
+
+//		var_dump($this->dataProvider->getPagination());
+//		die();
+
 		$this->prepareExport();
 		parent::init();
 	}
@@ -190,7 +197,7 @@ HTML;
 	{
 		if ($this->visible && (!$this->isEmpty || $this->emptyText)) {
 			GridViewAsset::register($this->getView());
-			$this->layout = '{top}{preGrid}' . $this->layout . '{postGrid}';
+			$this->layout = '{top}{preGrid}{toggleData}' . $this->layout . '{postGrid}';
 			if ($this->containerClass) {
 				$this->layout = '{initContainer}' . $this->layout . '{endContainer}';
 			}
@@ -294,7 +301,6 @@ HTML;
 		$showOnEmpty = ArrayHelper::getValue($this->export, 'showOnEmpty', $this->showOnEmpty);
 		$showColumnSelector = ArrayHelper::getValue($this->export, 'showColumnSelector', true);
 		$exportRequestParam = ArrayHelper::getValue($this->export, 'exportRequestParam', $this->id . '-export-');
-
 
 		return ExportMenu::widget([
 			'pjax' => false,
