@@ -57,10 +57,12 @@ class GridView extends \kartik\grid\GridView
 	 */
 	public $title = false;
 	public string $containerClass = 'rounded shadow mt-5 mb-5 p-3';
+    	public $headerContainer = ['class' => 'kv-table-header sml-table-header'];
 	public bool $visible = true;
 	public $hover = true;
 	public $striped = false;
 	public $bordered = false;
+	
 //	public $summary = '';
 	public $showOnEmpty = false;
 	public $responsive = true;
