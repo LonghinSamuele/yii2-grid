@@ -4,9 +4,10 @@
         window.location.href = url;
     }
 }
+*/
 
 
-    // Intercetta i clic sui link di ordinamento della GridView e aggiungi il parametro del tab corrente all\'URL
+// Intercetta i clic sui link di ordinamento della GridView e aggiungi il parametro del tab corrente all\'URL
 $(document).on("click", ".sml-table-header th a[data-sort]", function (e) {
     e.preventDefault();
     var tabId = window.location.hash.substr(1);
@@ -15,7 +16,6 @@ $(document).on("click", ".sml-table-header th a[data-sort]", function (e) {
     window.location.href = url.toString();
 });
 
-*/
 
 $(document).ready(function () {
     $('.sl-gridview-clickable-row').each(function () {
