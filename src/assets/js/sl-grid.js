@@ -8,7 +8,7 @@
 
 
 // Intercetta i clic sui link di ordinamento della GridView e aggiungi il parametro del tab corrente all\'URL
-$(document).on("click", ".sml-table-header th a[data-sort]", function (e) {
+$(document).on("click", ".sml-table-header th a[data-sort], .page-link", function (e) {
     e.preventDefault();
     var tabId = window.location.hash.substr(1);
     var url = new URL($(this).attr("href"), window.location.origin);
