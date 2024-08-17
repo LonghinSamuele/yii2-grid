@@ -22,4 +22,6 @@
 .sl-gridview-existing-link {
     z-index: 5; /* Imposta un z-index più alto per i link esistenti */
     position: relative; /* Necessario per z-index */
+    transform: rotate(0); /* Questo permette di bloccare i stretched link presenti all'interno che non si espandano oltre questo elemento.
+    È utile perché in safari sennò non funzionano gli stretched link */
 }
